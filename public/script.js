@@ -21,7 +21,7 @@ socket.on("authSuccess", () => {
 });
 
 socket.on("authFailure", (msg) => {
-  authError.textContent = msg;
+  document.getElementById("authError").textContent = msg;
 });
 
 
