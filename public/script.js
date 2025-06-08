@@ -4,6 +4,26 @@ const joinForm = document.getElementById("joinForm");
 const chatDiv = document.getElementById("chat");
 const messagesDiv = document.getElementById("messages");
 const chatForm = document.getElementById("chatForm");
+const usernameForm = document.getElementById("usernameForm");
+const authError = document.getElementById("authError");
+
+usernameForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!username || !password) return;
+
+  socket.emit("authenticate", { username, password });
+});
+socket.on("authSuccess", () => {
+  document.getElementById("usernameModal").style.display = "none";
+});
+
+socket.on("authFailure", (msg) => {
+  authError.textContent = msg;
+});
+
 
 joinForm.addEventListener("submit", (e) => {
   e.preventDefault();
