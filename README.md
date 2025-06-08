@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Real-Time Chat App
 
 This is a real-time chat application using Node.js, Socket.IO, HTML, CSS, and JavaScript.
@@ -23,3 +24,6 @@ Visit: http://localhost:3000
 5. Start command: `node server.js`
 6. Add `web: node server.js` in a `Procfile` if needed
 7. Deploy & Share the URL
+=======
+# chat-app
+>>>>>>> 43d1c0c3cda27e04ba449f22bc650ce40680c17e
