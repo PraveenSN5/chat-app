@@ -17,6 +17,23 @@
     <input id="messageInput" placeholder="Enter message" />
     <button id="sendBtn">Send</button>
   </div>
+  <div class="chat-container">
+  <header class="chat-header">Optimistic Chat</header>
+  
+  <div class="chat-messages" id="chat-messages">
+    <!-- Messages get appended here -->
+    <div class="message system">
+      <span class="text">Welcome to the chat!</span>
+      <span class="time">12:00 PM</span>
+    </div>
+  </div>
+  
+  <form class="chat-form" id="chat-form">
+    <input type="text" id="msg" autocomplete="off" placeholder="Type your message..." />
+    <button type="submit">Send</button>
+  </form>
+</div>
+
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
