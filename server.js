@@ -22,32 +22,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 
 const rooms = new Set();
-io.on("connection", (socket) => {
-  socket.on("authenticate", ({ username, password }) => {
-    if (users[username] && users[username] === password) {
-      socket.username = username;
-      socket.emit("authSuccess");
-      socket.emit("roomList", Array.from(rooms)); // optional
-    } else {
-      socket.emit("authFailure", "Invalid username or password");
-    }
-  });
 
-  // only allow joining room after auth
-  socket.on("joinRoom", (room) => {
-    if (!socket.username) return;
-    socket.join(room);
-    // rest of your logic
-  });
-
-  // similar check for message sending
-  socket.on("chatMessage", (msg) => {
-    if (!socket.username) return;
-    // continue handling message
-  });
-
-  // disconnect logic stays the same
-});
 
 
 io.on("connection", (socket) => {
