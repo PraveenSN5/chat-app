@@ -26,31 +26,26 @@ const rooms = new Set();
 
 
 io.on("connection", (socket) => {
-  socket.on("authenticate", ({ username, password }) => {
-    if (users[username] && users[username] === password) {
-      socket.username = username;
-      socket.emit("authSuccess");
-      socket.emit("roomList", Array.from(rooms)); // optional
-    } else {
-      socket.emit("authFailure", "Invalid username or password");
+  console.log(`New connection: ${socket.id}`);
+
+  socket.on("joinRoom", ({ username, room }) => {
+    console.log(`User ${username} trying to join room ${room}`);
+
+    // Log current users for debug
+    console.log("Current users:", users);
+
+    // Check if username is taken in ANY room
+    const usernameTaken = Object.values(users).some(u => u.username === username);
+    if (usernameTaken) {
+      console.log(`Username taken: ${username}`);
+      socket.emit("usernameTaken");
+      return;
     }
-  });
 
-  // only allow joining room after auth
-  socket.on("joinRoom", (room) => {
-    if (!socket.username) return;
+    // Save user info
+    users[socket.id] = { username, room };
+    rooms.add(room);
     socket.join(room);
-    // rest of your logic
-  });
-
-  // similar check for message sending
-  socket.on("chatMessage", (msg) => {
-    if (!socket.username) return;
-    // continue handling message
-  ;
-
-  // disconnect logic stays the same
-
 
     console.log(`User joined: ${username} in room ${room}`);
     console.log("Users after join:", users);
@@ -77,7 +72,7 @@ io.on("connection", (socket) => {
     console.log(`Disconnecting: ${socket.id}`);
 
     const user = users[socket.id];
-    if (user) { 
+    if (user) {
       io.to(user.room).emit("message", {
         username: "System",
         text: `${user.username} left the room.`,
