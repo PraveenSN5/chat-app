@@ -1,4 +1,7 @@
+console.log("Commit:", require("child_process").execSync("git rev-parse HEAD").toString().trim());
+  
 const express = require("express");
+
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
