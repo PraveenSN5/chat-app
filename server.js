@@ -1,7 +1,6 @@
 console.log("Commit:", require("child_process").execSync("git rev-parse HEAD").toString().trim());
-  
-const express = require("express");
 
+const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
@@ -17,14 +16,7 @@ const rooms = new Set();
 
 io.on("connection", (socket) => {
   socket.on("joinRoom", ({ username, room }) => {
-    const usernameTaken = Object.values(users).some(
-      (u) => u.username === username
-    );
-    if (usernameTaken) {
-      socket.emit("usernameTaken");
-      return;
-    }
-
+    // Skipping usernameTaken check to allow reconnections and stateless handling
     users[socket.id] = { username, room };
     rooms.add(room);
     socket.join(room);
@@ -59,8 +51,8 @@ io.on("connection", (socket) => {
     }
   });
 });
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
