@@ -1,5 +1,3 @@
-console.log("Commit:", require("child_process").execSync("git rev-parse HEAD").toString().trim());
-
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -12,13 +10,19 @@ const io = new Server(server);
 app.use(express.static(path.join(__dirname, "public")));
 
 const users = {}; // socket.id => { username, room }
-const rooms = new Set();
 
 io.on("connection", (socket) => {
   socket.on("joinRoom", ({ username, room }) => {
-    // Skipping usernameTaken check to allow reconnections and stateless handling
+    const usernameTaken = Object.values(users).some(
+      (u) => u.username === username && u.room === room
+    );
+
+    if (usernameTaken) {
+      socket.emit("usernameTaken");
+      return;
+    }
+
     users[socket.id] = { username, room };
-    rooms.add(room);
     socket.join(room);
 
     io.to(room).emit("message", {
