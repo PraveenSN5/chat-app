@@ -3,14 +3,18 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const { execSync } = require("child_process");
-const users = {
+
+// Store users with password authentication
+const registeredUsers = {
   Disha: "childu@123",
   Sharath: "Rcb@123",
   Yashu: "admin123",
   Praveen: "Password"
 };
 
-
+// Track active users and rooms
+const activeUsers = new Map(); // socket.id -> { username, room }
+const rooms = new Set();
 
 console.log("Commit:", execSync("git rev-parse HEAD").toString().trim());
 
@@ -20,36 +24,48 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "public")));
 
-
-const rooms = new Set();
-
-
-
 io.on("connection", (socket) => {
   console.log(`New connection: ${socket.id}`);
 
-  socket.on("joinRoom", ({ username, room }) => {
-    console.log(`User ${username} trying to join room ${room}`);
-
-    // Log current users for debug
-    console.log("Current users:", users);
-
-    // Check if username is taken in ANY room
-    const usernameTaken = Object.values(users).some(u => u.username === username);
-    if (usernameTaken) {
-      console.log(`Username taken: ${username}`);
-      socket.emit("usernameTaken");
+  // Authentication handler
+  socket.on("authenticate", ({ username, password }) => {
+    if (!registeredUsers[username] || registeredUsers[username] !== password) {
+      socket.emit("authFailure", "Invalid username or password");
       return;
     }
 
-    // Save user info
-    users[socket.id] = { username, room };
+    // Check if user is already logged in elsewhere
+    for (let [_, user] of activeUsers) {
+      if (user.username === username) {
+        socket.emit("authFailure", "User already logged in");
+        return;
+      }
+    }
+
+    socket.emit("authSuccess", username);
+  });
+
+  socket.on("joinRoom", ({ username, room }) => {
+    // Validate input
+    if (!username || !room || typeof username !== 'string' || typeof room !== 'string') {
+      socket.emit("error", "Invalid username or room");
+      return;
+    }
+
+    // Check if username is taken in this room
+    for (let [_, user] of activeUsers) {
+      if (user.username === username && user.room === room) {
+        socket.emit("usernameTaken");
+        return;
+      }
+    }
+
+    // Join the room
+    activeUsers.set(socket.id, { username, room });
     rooms.add(room);
     socket.join(room);
 
-    console.log(`User joined: ${username} in room ${room}`);
-    console.log("Users after join:", users);
-
+    // Notify room
     io.to(room).emit("message", {
       username: "System",
       text: `${username} joined the room.`,
@@ -58,34 +74,38 @@ io.on("connection", (socket) => {
   });
 
   socket.on("chatMessage", (msg) => {
-    const user = users[socket.id];
-    if (user) {
-      io.to(user.room).emit("message", {
-        username: user.username,
-        text: msg,
-        time: new Date().toLocaleTimeString(),
-      });
+    const user = activeUsers.get(socket.id);
+    if (!user) {
+      socket.emit("error", "Not authenticated");
+      return;
     }
+
+    // Basic message validation
+    if (typeof msg !== 'string' || msg.trim() === '') {
+      socket.emit("error", "Invalid message");
+      return;
+    }
+
+    // Sanitize message (in a real app, use a proper sanitizer)
+    const sanitizedMsg = msg.trim().substring(0, 500);
+
+    io.to(user.room).emit("message", {
+      username: user.username,
+      text: sanitizedMsg,
+      time: new Date().toLocaleTimeString(),
+    });
   });
 
   socket.on("disconnect", () => {
-    console.log(`Disconnecting: ${socket.id}`);
-
-    const user = users[socket.id];
+    const user = activeUsers.get(socket.id);
     if (user) {
       io.to(user.room).emit("message", {
         username: "System",
         text: `${user.username} left the room.`,
         time: new Date().toLocaleTimeString(),
       });
-
-      delete users[socket.id];
-      console.log(`User removed: ${user.username}`);
-    } else {
-      console.log(`No user info found for socket ${socket.id}`);
+      activeUsers.delete(socket.id);
     }
-
-    console.log("Users after disconnect:", users);
   });
 });
 
