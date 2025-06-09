@@ -44,19 +44,26 @@ socket.on("message", (msg) => {
   const div = document.createElement("div");
   div.classList.add("message");
 
+  // 👇 Important: Compare with your current username
   const currentUser = document.getElementById("username").value.trim();
-  if (msg.username === "System") {
-    div.classList.add("system");
-  } else if (msg.username === currentUser) {
+
+  if (msg.username === currentUser) {
     div.classList.add("sent");
+  } else if (msg.username === "System") {
+    div.classList.add("system");
   } else {
     div.classList.add("received");
   }
 
-  div.innerHTML = `<strong>${msg.username}</strong> [${msg.time}]: ${msg.text}`;
+  div.innerHTML = `
+    <strong>${msg.username}</strong> [${msg.time}]: ${msg.text}
+    <span class="time">${msg.time}</span>
+  `;
+
   messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 });
+
 
 
 chatForm.addEventListener("submit", (e) => {
