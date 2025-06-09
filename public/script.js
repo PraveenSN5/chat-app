@@ -40,15 +40,31 @@ socket.on("usernameTaken", () => {
 socket.on("message", (msg) => {
   chatDiv.style.display = "block";
   joinForm.style.display = "none";
+
   const div = document.createElement("div");
+  div.classList.add("message");
+
+  const currentUser = document.getElementById("username").value.trim();
+  if (msg.username === "System") {
+    div.classList.add("system");
+  } else if (msg.username === currentUser) {
+    div.classList.add("sent");
+  } else {
+    div.classList.add("received");
+  }
+
   div.innerHTML = `<strong>${msg.username}</strong> [${msg.time}]: ${msg.text}`;
   messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 });
 
+
 chatForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const msg = document.getElementById("msg").value;
+  const msgInput = document.getElementById("msg");
+  const msg = msgInput.value.trim();
+  if (!msg) return;
   socket.emit("chatMessage", msg);
-  document.getElementById("msg").value = "";
+  msgInput.value = "";
 });
+
