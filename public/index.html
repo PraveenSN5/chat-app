@@ -3,98 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Whisper</title>
+  <title>Whisper - Secure Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- Modern Login Prompt -->
-  <div class="login-container" id="joinChatDiv">
-    <h2>No One Knows,Just Whisper</h2>
-    <input id="usernameInput" placeholder="Enter username" />
-    <input id="roomInput" placeholder="Enter room" />
-    <input id="passwordInput" type="password" placeholder="Enter password" />
-    <button id="joinBtn">Join Chat</button>
+  <!-- Authentication Modal -->
+  <div class="modal" id="usernameModal">
+    <div class="modal-content">
+      <h2>Welcome to Whisper</h2>
+      <p>No One Knows, Just Whisper</p>
+      
+      <div class="auth-tabs">
+        <button class="tab-btn active" id="loginTab">Login</button>
+        <button class="tab-btn" id="registerTab">Register</button>
+      </div>
+      
+      <form id="authForm">
+        <input type="text" id="username" placeholder="Username" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <div id="registerFields" style="display: none;">
+          <input type="password" id="confirmPassword" placeholder="Confirm Password" />
+        </div>
+        <button type="button" id="loginBtn">Login</button>
+        <button type="button" id="registerBtn" style="display: none;">Register</button>
+      </form>
+      <p id="authError" style="color: red;"></p>
+    </div>
   </div>
-  <p id="authError" style="color: red;"></p>
-  <!-- Styled Chat Interface -->
-  <div class="chat-container" style="display: none;" id="chatContainer">
-    <header class="chat-header">Hi Childuuu!</header>
+
+  <!-- Room Join Form (shown after authentication) -->
+  <div class="login-container" id="joinForm" style="display: none;">
+    <h2>Join a Chat Room</h2>
+    <input id="room" placeholder="Enter room name" required />
+    <button id="joinRoomBtn">Join Room</button>
+  </div>
+
+  <!-- Chat Interface -->
+  <div class="chat-container" style="display: none;" id="chat">
+    <header class="chat-header">
+      <span id="roomNameDisplay">Room: </span>
+      <span id="userNameDisplay"></span>
+    </header>
     
-    <div class="chat-messages" id="chat-messages">
+    <div class="chat-messages" id="messages">
       <!-- Messages will be appended here -->
     </div>
     
-    <form class="chat-form" id="chat-form">
+    <form class="chat-form" id="chatForm">
       <input type="text" id="msg" autocomplete="off" placeholder="Type your message..." />
       <button type="submit">Send</button>
     </form>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-
-    const joinChatDiv = document.getElementById('joinChatDiv');
-    const chatContainer = document.getElementById('chatContainer');
-
-    const usernameInput = document.getElementById('usernameInput');
-    const roomInput = document.getElementById('roomInput');
-    const passwordInput = document.getElementById('passwordInput');
-    const joinBtn = document.getElementById('joinBtn');
-
-    const styledMessages = document.getElementById('chat-messages');
-    const styledForm = document.getElementById('chat-form');
-    const styledInput = document.getElementById('msg');
-
-    joinBtn.addEventListener('click', () => {
-      const username = usernameInput.value.trim();
-      const room = roomInput.value.trim();
-      const password = passwordInput.value.trim(); // Currently unused
-
-      if (!username || !room) {
-        alert('Please enter username and room.');
-        return;
-      }
-
-      socket.emit('joinRoom', { username, room });
-    });
-
-    socket.on('usernameTaken', () => {
-      alert('Username is already taken. Please choose another one.');
-      usernameInput.value = '';
-      usernameInput.focus();
-    });
-
-    socket.on('message', (message) => {
-      const styledMsg = document.createElement('div');
-      styledMsg.classList.add('message');
-
-      if (message.username === 'System') {
-        styledMsg.classList.add('system');
-        styledMsg.innerHTML = `<span class="text">${message.text}</span><span class="time">${message.time}</span>`;
-      } else {
-        styledMsg.innerHTML = `<span class="text"><strong>${message.username}:</strong> ${message.text}</span><span class="time">${message.time}</span>`;
-      }
-
-      styledMessages.appendChild(styledMsg);
-      styledMessages.scrollTop = styledMessages.scrollHeight;
-
-      // Show chat on successful join
-      if (message.text.includes('joined the room.') && chatContainer.style.display === 'none') {
-        joinChatDiv.style.display = 'none';
-        chatContainer.style.display = 'flex';
-      }
-    });
-
-    styledForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const msg = styledInput.value.trim();
-      if (!msg) return;
-      socket.emit('chatMessage', msg);
-      styledInput.value = '';
-      styledInput.focus();
-    });
-  </script>
+  <script src="chat.js"></script> <!-- This would contain the JavaScript code I provided earlier -->
 </body>
 </html>
