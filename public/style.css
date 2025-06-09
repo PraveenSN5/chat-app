@@ -110,6 +110,20 @@ body {
   color: white;
   align-self: flex-end;
 }
+.message.sent {
+  background: #007bff;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+
+.message.received {
+  background: #f1f1f1;
+  color: #333;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+}
+
 
 .message.system {
   align-self: center;
@@ -120,7 +134,7 @@ body {
 }
 
 .message .time {
-  font-size: 0.7rem;
+  font-size: 0.4rem;
   color: #ccc;
   position: absolute;
   bottom: 4px;
