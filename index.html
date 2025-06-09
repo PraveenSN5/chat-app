@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniChat - Real-time Chat Application</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="loginTab">Login</button>
+                <button class="tab-btn" id="registerTab">Register</button>
+            </div>
+            
+            <form id="authForm">
+                <input type="text" id="authUsername" placeholder="Username" required minlength="3" maxlength="20">
+                <input type="password" id="authPassword" placeholder="Password" required minlength="6">
+                <div id="registerFields" style="display: none;">
+                    <input type="password" id="confirmPassword" placeholder="Confirm Password">
+                </div>
+                <button type="submit" id="authSubmit">Login</button>
+            </form>
+            <p id="authError"></p>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app-container" id="appContainer">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="user-profile">
+                <div class="avatar" id="userAvatar">U</div>
+                <span id="usernameDisplay">Guest</span>
+            </div>
+            
+            <div class="rooms-section">
+                <div class="section-header">
+                    <h3>Rooms</h3>
+                    <button id="createRoomBtn"><i class="fas fa-plus"></i></button>
+                </div>
+                <ul id="roomList">
+                    <!-- Rooms will be populated here -->
+                </ul>
+            </div>
+            
+            <div class="users-section">
+                <div class="section-header">
+                    <h3>Online Users</h3>
+                </div>
+                <ul id="userList">
+                    <!-- Online users will be populated here -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <h2 id="currentRoom">Select a Room</h2>
+                <div class="room-actions">
+                    <button id="leaveRoomBtn">Leave Room</button>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <!-- Messages will appear here -->
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <p>Join a room to start chatting</p>
+                </div>
+            </div>
+            
+            <div class="message-input">
+                <div class="formatting-tools">
+                    <button data-format="bold" title="Bold"><i class="fas fa-bold"></i></button>
+                    <button data-format="italic" title="Italic"><i class="fas fa-italic"></i></button>
+                    <button data-format="link" title="Insert Link"><i class="fas fa-link"></i></button>
+                </div>
+                <form id="messageForm">
+                    <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+                    <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Room Modal -->
+    <div class="modal" id="roomModal" style="display: none;">
+        <div class="modal-content">
+            <h2>Create New Room</h2>
+            <form id="roomForm">
+                <input type="text" id="roomName" placeholder="Room name" required minlength="3" maxlength="30">
+                <div class="form-actions">
+                    <button type="button" id="cancelRoomBtn">Cancel</button>
+                    <button type="submit">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

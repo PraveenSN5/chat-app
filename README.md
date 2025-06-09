@@ -1,30 +1,19 @@
-<<<<<<< HEAD
-# Real-Time Chat App
+# UniChat - Real-time Chat Application
 
-This is a real-time chat application using Node.js, Socket.IO, HTML, CSS, and JavaScript.
+UniChat is a real-time chat application built with Node.js, Express, and Socket.io.
 
-## 🚀 Features
-- Join chat rooms with custom usernames
+## Features
+
+- User authentication (login/registration)
+- Multiple chat rooms
 - Real-time messaging
-- Room creation
-- Username validation
+- Online user list
+- Message formatting (bold, italics, links)
+- Responsive design
 
-## 🛠️ Run Locally
-```bash
-npm install
-node server.js
-```
-Visit: http://localhost:3000
+## Installation
 
-## 🌍 Deploy on Render
-1. Go to https://render.com
-2. Create a new Web Service
-3. Connect to your GitHub repo
-4. Build command: `npm install`
-5. Start command: `node server.js`
-6. Add `web: node server.js` in a `Procfile` if needed
-7. Deploy & Share the URL
-=======
-# chat-app
->>>>>>> 43d1c0c3cda27e04ba449f22bc650ce40680c17e
-# Dummy change to force redeploy
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/unichat.git
+   cd unichat
