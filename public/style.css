@@ -109,21 +109,24 @@ body {
   background: #007bff;
   color: white;
   align-self: flex-end;
+  word-wrap: break-word;
 }
 .message.sent {
   background: #007bff;
   color: white;
   align-self: flex-end;
   border-bottom-right-radius: 0;
+  text-align: right;
 }
 
+/* Received messages - align left */
 .message.received {
   background: #f1f1f1;
   color: #333;
   align-self: flex-start;
   border-bottom-left-radius: 0;
+  text-align: left;
 }
-
 
 .message.system {
   align-self: center;
