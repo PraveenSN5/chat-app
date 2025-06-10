@@ -3,23 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Whisper</title>
+  <title>Blink</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div>
+    <nav class="navbar">
+      
+  <div class="nav-content">
+    <img src="blink.jpeg" alt="Logo" class="logo" />
+    <span class="brand-name"><i><b>BlinkChat</b></i></span>
+     <div class="marquee-container">
+      <div class="marquee">🚀 Welcome to Blink Chat! Create or join rooms and chat live with your friends! 🗨️</div>
+    </div>
+  </div>
+</nav>
 
+  </div>
   <!-- Modern Login Prompt -->
   <div class="login-container" id="joinChatDiv">
-    <h2>No One Knows ,Just Whisper</h2>
+    <h2><I>Login Now</I></h2>
     <input id="usernameInput" placeholder="Enter username" />
     <input id="roomInput" placeholder="Enter room" />
     <input id="passwordInput" type="password" placeholder="Enter password" />
     <button id="joinBtn">Join Chat</button>
+
   </div>
+  <div id="joinChatDiv">...</div>
+<div id="chatContainer" style="display: none;">...</div>
   <p id="authError" style="color: red;"></p>
+  <div class="room-controls">
+  <form id="createRoomForm">
+  <input type="text" id="newRoom" placeholder="Create new room">
+  <button type="submit">Create</button>
+</form>
+
+<select id="roomList">
+  <option value="">-- Choose Room --</option>
+</select>
+
+<form id="joinForm">
+  <input type="text" id="username" placeholder="Enter username">
+  <input type="text" id="room" placeholder="Enter room">
+  <button type="submit">Join</button>
+</form>
+  </div>
+
   <!-- Styled Chat Interface -->
   <div class="chat-container" style="display: none;" id="chatContainer">
-    <header class="chat-header">Hi Childuuu!</header>
+    <header class="chat-header"><i>Mathe yen samachara...?</i></header>
     
     <div class="chat-messages" id="chat-messages">
       <!-- Messages will be appended here -->
@@ -31,70 +63,131 @@
     </form>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
+ <script>
+const socket = io();
 
-    const joinChatDiv = document.getElementById('joinChatDiv');
-    const chatContainer = document.getElementById('chatContainer');
+// Elements
+const joinBtn = document.getElementById('joinBtn');
+const usernameInput = document.getElementById('usernameInput');
+const roomInput = document.getElementById('roomInput');
+const passwordInput = document.getElementById('passwordInput');
+const authError = document.getElementById('authError');
+const joinChatDiv = document.getElementById('joinChatDiv');
+const chatContainer = document.getElementById('chatContainer');
 
-    const usernameInput = document.getElementById('usernameInput');
-    const roomInput = document.getElementById('roomInput');
-    const passwordInput = document.getElementById('passwordInput');
-    const joinBtn = document.getElementById('joinBtn');
+const createRoomForm = document.getElementById('createRoomForm');
+const newRoomInput = document.getElementById('newRoom');
+const roomListSelect = document.getElementById('roomList');
 
-    const styledMessages = document.getElementById('chat-messages');
-    const styledForm = document.getElementById('chat-form');
-    const styledInput = document.getElementById('msg');
+const styledMessages = document.getElementById('chat-messages');
+const styledForm = document.getElementById('chat-form');
+const styledInput = document.getElementById('msg');
 
-    joinBtn.addEventListener('click', () => {
-      const username = usernameInput.value.trim();
-      const room = roomInput.value.trim();
-      const password = passwordInput.value.trim(); // Currently unused
+let currentUser = { username: "", room: "" };
 
-      if (!username || !room) {
-        alert('Please enter username and room.');
-        return;
-      }
+// Handle Join Button
+joinBtn.addEventListener('click', () => {
+  const username = usernameInput.value.trim();
+  const room = roomInput.value.trim();
+  const password = passwordInput.value.trim();
 
-      socket.emit('joinRoom', { username, room });
-    });
+  if (!username || !room || !password) {
+    alert("Please fill all fields.");
+    return;
+  }
 
-    socket.on('usernameTaken', () => {
-      alert('Username is already taken. Please choose another one.');
-      usernameInput.value = '';
-      usernameInput.focus();
-    });
+  currentUser = { username, room };
 
-    socket.on('message', (message) => {
-      const styledMsg = document.createElement('div');
-      styledMsg.classList.add('message');
+  // Step 1: Authenticate
+  socket.emit("authenticate", { username, password });
+});
 
-      if (message.username === 'System') {
-        styledMsg.classList.add('system');
-        styledMsg.innerHTML = `<span class="text">${message.text}</span><span class="time">${message.time}</span>`;
-      } else {
-        styledMsg.innerHTML = `<span class="text"><strong>${message.username}:</strong> ${message.text}</span><span class="time">${message.time}</span>`;
-      }
+// Step 2: On successful auth, join room
+socket.on("authSuccess", () => {
+  socket.emit("joinRoom", currentUser);
+});
 
-      styledMessages.appendChild(styledMsg);
-      styledMessages.scrollTop = styledMessages.scrollHeight;
+// Step 3: On auth failure
+socket.on("authFailure", (msg) => {
+  authError.textContent = msg;
+});
 
-      // Show chat on successful join
-      if (message.text.includes('joined the room.') && chatContainer.style.display === 'none') {
-        joinChatDiv.style.display = 'none';
-        chatContainer.style.display = 'flex';
-      }
-    });
+// Step 4: On username already in use
+socket.on("usernameTaken", () => {
+  alert("Username is already taken in this room.");
+});
 
-    styledForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const msg = styledInput.value.trim();
-      if (!msg) return;
-      socket.emit('chatMessage', msg);
-      styledInput.value = '';
-      styledInput.focus();
-    });
-  </script>
+// Step 5: Room joined successfully
+socket.on("roomJoined", (room) => {
+  joinChatDiv.style.display = "none";
+  chatContainer.style.display = "flex";
+  alert(`Joined room: ${room}`);
+});
+
+// Display incoming message
+socket.on("message", (message) => {
+  const div = document.createElement("div");
+  div.classList.add("message");
+
+  if (message.username === "System") {
+    div.classList.add("system");
+  }
+
+  div.innerHTML = `<span class="text"><strong>${message.username}</strong>: ${message.text}</span>
+                   <span class="time">${message.time}</span>`;
+  styledMessages.appendChild(div);
+  styledMessages.scrollTop = styledMessages.scrollHeight;
+});
+
+// Send message
+styledForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const msg = styledInput.value.trim();
+  if (msg) {
+    socket.emit("chatMessage", msg);
+    styledInput.value = '';
+  }
+});
+
+// Room List
+socket.emit("getRooms");
+
+socket.on("roomList", (rooms) => {
+  roomListSelect.innerHTML = '<option value="">-- Choose Room --</option>';
+  rooms.forEach((room) => {
+    const option = document.createElement("option");
+    option.value = room;
+    option.textContent = room;
+    roomListSelect.appendChild(option);
+  });
+});
+
+roomListSelect.addEventListener("change", () => {
+  roomInput.value = roomListSelect.value;
+});
+
+// Create Room
+createRoomForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const room = newRoomInput.value.trim();
+  const username = usernameInput.value.trim();
+  if (!room || !username) return;
+
+  currentUser = { username, room };
+  socket.emit("createRoom", { room, username });
+});
+
+socket.on("roomExists", (room) => {
+  alert(`Room "${room}" already exists. Please join it instead.`);
+});
+
+socket.on("roomCreated", (room) => {
+  alert(`Room "${room}" created and joined.`);
+  roomInput.value = room;
+  socket.emit("getRooms");
+  socket.emit("joinRoom", currentUser);
+});
+</script>
+
 </body>
 </html>

@@ -3,14 +3,17 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const { execSync } = require("child_process");
-const users = {
+
+// Predefined login users
+const authUsers = {
   Disha: "childu@123",
   Sharath: "Rcb@123",
   Yashu: "admin123",
   Praveen: "Password"
 };
 
-
+const users = {}; // Will hold: socket.id => { username, room }
+const rooms = new Set(); // Global room store
 
 console.log("Commit:", execSync("git rev-parse HEAD").toString().trim());
 
@@ -20,43 +23,75 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "public")));
 
-
-const rooms = new Set();
-
-
-
 io.on("connection", (socket) => {
   console.log(`New connection: ${socket.id}`);
 
-  socket.on("joinRoom", ({ username, room }) => {
-    console.log(`User ${username} trying to join room ${room}`);
-
-    // Log current users for debug
-    console.log("Current users:", users);
-
-    // Check if username is taken in ANY room
-    const usernameTaken = Object.values(users).some(u => u.username === username);
-    if (usernameTaken) {
-      console.log(`Username taken: ${username}`);
-      socket.emit("usernameTaken");
-      return;
+  // --- Authentication ---
+  socket.on("authenticate", ({ username, password }) => {
+    if (authUsers[username] && authUsers[username] === password) {
+      socket.emit("authSuccess");
+    } else {
+      socket.emit("authFailure", "Invalid username or password");
     }
-
-    // Save user info
-    users[socket.id] = { username, room };
-    rooms.add(room);
-    socket.join(room);
-
-    console.log(`User joined: ${username} in room ${room}`);
-    console.log("Users after join:", users);
-
-    io.to(room).emit("message", {
-      username: "System",
-      text: `${username} joined the room.`,
-      time: new Date().toLocaleTimeString(),
-    });
   });
 
+  // --- Room list fetch ---
+  socket.on("getRooms", () => {
+    socket.emit("roomList", Array.from(rooms));
+  });
+
+  // --- Room creation ---
+  socket.on("createRoom", ({ room, username }) => {
+    console.log(`Creating room: ${room} by ${username}`);
+
+    if (rooms.has(room)) {
+      socket.emit("roomExists", room);
+    } else {
+      rooms.add(room);
+      console.log("Rooms Set:", Array.from(rooms));
+      io.emit("roomList", Array.from(rooms));
+
+      socket.join(room);
+      users[socket.id] = { username, room };
+      socket.emit("roomCreated", room);
+
+      io.to(room).emit("message", {
+        username: "System",
+        text: `${username} created and joined the room.`,
+        time: new Date().toLocaleTimeString(),
+      });
+    }
+  });
+
+  // --- Join room ---
+  socket.on("joinRoom", ({ room, username }) => {
+    
+    if (!rooms.has(room)) {
+      socket.emit("roomNotFound", room);
+    } else {
+      // Check if username already taken in the room
+      const taken = Object.values(users).some(
+        (u) => u.username === username && u.room === room
+      );
+
+      if (taken) {
+        socket.emit("usernameTaken");
+        return;
+      }
+
+      socket.join(room);
+      users[socket.id] = { username, room };
+      socket.emit("roomJoined", room);
+
+      io.to(room).emit("message", {
+        username: "System",
+        text: `${username} joined the room.`,
+        time: new Date().toLocaleTimeString(),
+      });
+    }
+  });
+
+  // --- Handle messages ---
   socket.on("chatMessage", (msg) => {
     const user = users[socket.id];
     if (user) {
@@ -68,9 +103,8 @@ io.on("connection", (socket) => {
     }
   });
 
+  // --- Handle disconnect ---
   socket.on("disconnect", () => {
-    console.log(`Disconnecting: ${socket.id}`);
-
     const user = users[socket.id];
     if (user) {
       io.to(user.room).emit("message", {
@@ -80,12 +114,7 @@ io.on("connection", (socket) => {
       });
 
       delete users[socket.id];
-      console.log(`User removed: ${user.username}`);
-    } else {
-      console.log(`No user info found for socket ${socket.id}`);
     }
-
-    console.log("Users after disconnect:", users);
   });
 });
 
